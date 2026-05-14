@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable, Iterator, Optional
-from urllib.parse import urlparse
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 try:
     import psycopg
@@ -41,7 +41,17 @@ def _database_url() -> Optional[str]:
             url = str(st.secrets.get("FREEZERS_DATABASE_URL", "")).strip()
         except Exception:
             url = ""
+    if url:
+        url = _normalize_database_url(url)
     return url or None
+
+
+def _normalize_database_url(url: str) -> str:
+    parsed = urlparse(url)
+    query = dict(parse_qsl(parsed.query, keep_blank_values=True))
+    if parsed.scheme.startswith("postgres") and "sslmode" not in query:
+        query["sslmode"] = "require"
+    return urlunparse(parsed._replace(query=urlencode(query)))
 
 
 def database_label() -> str:
@@ -179,7 +189,7 @@ CREATE INDEX IF NOT EXISTS idx_aliquots_status ON aliquots(status);
 CREATE TABLE IF NOT EXISTS events (
   id {id_sql},
   ts TEXT NOT NULL,
-  user TEXT,
+  "user" TEXT,
   action TEXT NOT NULL,
   aliquot_id INTEGER,
   from_status TEXT,
@@ -349,7 +359,7 @@ def log_event(
 ) -> None:
     conn.execute(
         """
-        INSERT INTO events(ts, user, action, aliquot_id, from_status, to_status, from_location, to_location, note)
+        INSERT INTO events(ts, "user", action, aliquot_id, from_status, to_status, from_location, to_location, note)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (utc_now_iso(), user, action, aliquot_id, from_status, to_status, from_location, to_location, note),

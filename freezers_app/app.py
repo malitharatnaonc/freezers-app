@@ -96,7 +96,7 @@ def _archive_user_options() -> list[str]:
               UNION
               SELECT thawed_by AS user_name FROM aliquots WHERE thawed_by IS NOT NULL AND TRIM(thawed_by) != ''
               UNION
-              SELECT user AS user_name FROM events WHERE user IS NOT NULL AND TRIM(user) != ''
+              SELECT "user" AS user_name FROM events WHERE "user" IS NOT NULL AND TRIM("user") != ''
               UNION
               SELECT name AS user_name FROM thaw_users WHERE name IS NOT NULL AND TRIM(name) != ''
             )
@@ -1207,7 +1207,15 @@ def admin() -> None:
 
 def main() -> None:
     page_config()
-    init_db()
+    try:
+        init_db()
+    except Exception as exc:
+        st.error(
+            "Could not connect to the database. Check `FREEZERS_DATABASE_URL` in Streamlit secrets and make sure it uses Supabase session pooler details."
+        )
+        st.caption(f"Database target: `{database_label()}`")
+        st.exception(exc)
+        return
 
     page = nav()
     if page == "Home":
