@@ -19,6 +19,21 @@ python3 -m streamlit run app.py
 
 The app creates a local SQLite database at `freezers.sqlite3` by default.
 
+If you want the app to run on one lab machine and be reachable from other machines on the same network, use:
+
+```bash
+cd /Users/ratnawm/projects/freezers/freezers_app
+./run_local.sh
+```
+
+Then other users can open:
+
+```text
+http://<lab-machine-ip>:8501
+```
+
+This is browser access, not a static HTML file. The app still runs as Python on the host machine, but everyone can use it through a normal web page.
+
 To use Postgres instead, set `FREEZERS_DATABASE_URL`, for example:
 
 ```bash
