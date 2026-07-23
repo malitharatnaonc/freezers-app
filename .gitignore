@@ -1,4 +1,8 @@
 freezers_app/freezers.sqlite3
+freezers_app/node_modules/
+freezers_desktop/node_modules/
+freezers_desktop/dist/
+freezers_desktop/electron/dist/
 *.xlsx
 __pycache__/
 *.pyc
